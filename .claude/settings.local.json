@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo build:*)",
+      "Bash(cargo run:*)",
+      "Bash(cargo clean:*)",
+      "Bash(tree:*)",
+      "Bash(timeout 15 cargo run:*)",
+      "WebSearch",
+      "WebFetch(domain:www.bitget.com)",
+      "Bash(timeout 20 cargo run:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

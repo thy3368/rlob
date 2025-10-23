@@ -1,0 +1,215 @@
+stories:
+  US-001:
+    path: /Users/hongyaotang/src/rlob/src/web3
+    priority: 高
+    as: 交易员
+    want: 获取币安交易所的BTC/USDT实时价格数据
+    so_that: 做出及时的交易决策
+    acceptance_criteria:
+      - 能够连接到币安WebSocket API
+      - 实时接收BTC/USDT价格更新数据
+      - 连接断开时能够自动重连
+
+  US-001-1:
+    path: /Users/hongyaotang/src/rlob/src/web3
+    priority: 高
+    as: 交易员
+    want: 获取bitget的BTC/USDT实时价格数据
+    so_that: 做出及时的交易决策
+    acceptance_criteria:
+      - 能够连接到WebSocket API
+      - 实时接收BTC/USDT价格更新数据
+      - 连接断开时能够自动重连
+      - 尽量复用之前的领域模型
+
+  US-002:
+    priority: 高
+    as: 交易员
+    want: 获取币安交易所的BTC/USDT实时委托数据
+    so_that: 做出及时的交易决策
+    acceptance_criteria:
+      - 能够连接到币安WebSocket API
+      - 官方委托数据的量大深度
+
+  US-002-1:
+    priority: 高
+    as: 交易员
+    want: 获取币安交易所的BTC/USDT实时委托数据
+    so_that: 做出及时的交易决策
+    acceptance_criteria:
+      - 委托动作：NEW CANCELED REPLACED TRADE FILLED PARTIALLY_FILLED
+      - 委托类型：Limit Market StopLoss StopLossLimit TakeProfit TakeProfitLimit
+      - 内容：价格，数量
+      - 显示完整的委托动作 委托类型
+      - 需要包括市价单
+
+
+  US-003:
+    path: /Users/hongyaotang/src/rlob/src/web3
+    priority: 高
+    as: 交易员
+    want: 获取bitget交易所的BTC/USDT实时委托数据
+    so_that: 做出及时的交易决策
+    acceptance_criteria:
+      - 能够连接到bitget WebSocket API
+      - 官方委托数据的量大深度
+
+  US-003-1:
+    priority: 高
+    as: 交易员
+    want: 获取Hyperliquid交易所的BTC/USDT实时限价委托数据
+    so_that: 做出及时的交易决策
+    acceptance_criteria:
+      - 能够连接到Hyperliquid WebSocket API
+      - 官方委托数据的量大深度
+
+
+
+
+
+
+  US-004:
+    priority: 高
+    as: 交易员
+    want: 获取okx交易所的BTC/USDT实时委托数据
+    so_that: 做出及时的交易决策
+    acceptance_criteria:
+      - 能够连接到okx WebSocket API
+      - 官方委托数据的量大深度
+
+  US-005:
+    priority: 高
+    as: 交易员
+    want: 获取PancakeSwap V2 交易所的BTC/USDT实时委托数据
+    so_that: 做出及时的交易决策
+    acceptance_criteria:
+      - 能够实时获取委托数据
+      - 官方委托数据的量大深度
+
+
+  US-006:
+    priority: 高
+    as: 交易员
+    want: 币安 bitget 跨交易所套利
+    so_that: 做出及时的交易决策
+    implementation_steps:
+      - 获取币安 BTC/USDT实时委托数据
+      - 获取bitget BTC/USDT实时委托数据
+      - 分析套利机会
+      - 发出交易信息
+    test_steps:
+      - 编写连接测试用例
+    acceptance_criteria:
+      - 考虑交易成本
+      - 稳定获利 不伤本金
+
+
+  US-007:
+    priority: 高
+    as: 交易员
+    want: 获取juCoin交易所的BTC/USDT实时委托数据
+    so_that: 做出及时的交易决策
+    acceptance_criteria:
+      - 能够连接到juCoin WebSocket API
+      - 官方委托数据的量大深度
+
+  US-0071:
+    priority: 高
+    as: 交易员
+    want: 获取juCoin交易所的指定交易对（用户输入，如ONFDAO/USDT）实时委托数据
+    so_that: 做出及时的交易决策
+    acceptance_criteria:
+      - 能够连接到juCoin WebSocket API
+      - 官方委托数据的量大深度
+      - 卖买单量超过阀值时通知telegram
+
+  US-0072:
+    priority: 高
+    as: 交易员
+    want: 获取juCoin交易所的指定交易对（用户输入，如ONFDAO/USDT）实时成交单
+    so_that: 做出及时的交易决策
+    acceptance_criteria:
+      - 能够连接到juCoin WebSocket API
+      - 官方委托数据的量大深度
+      - 卖买单量超过阀值时通知telegram
+
+  US-0073:
+    priority: 高
+    as: 交易员
+    want: 获取juCoin交易所的指定交易对（用户输入，如ONFDAO/USDT）实时市价单
+    so_that: 做出及时的交易决策
+    acceptance_criteria:
+      - 能够连接到juCoin WebSocket API
+      - 卖买单量超过阀值时通知telegram
+
+  US-008:
+    priority: 高
+    as: 交易员
+    want: 币安 jucoin 跨交易所套利
+    so_that: 做出及时的交易决策
+    implementation_steps:
+      - 获取币安 BTC/USDT实时委托数据
+      - 获取jucoin BTC/USDT实时委托数据
+      - 分析套利机会
+      - 发出交易信息
+    test_steps:
+      - 编写套利机会测试用例
+    acceptance_criteria:
+      - 考虑交易成本
+      - 稳定获利 不伤本金
+
+
+  US-009:
+    priority: 高
+    as: 交易员
+    want: 币安 jucoin 跨交易所套利
+    so_that: 做出及时的交易决策
+    implementation_steps:
+      - 获取币安 ETH/USDT实时委托数据
+      - 获取jucoin ETH/USDT实时委托数据
+      - 分析套利机会
+      - 发出交易信息
+    test_steps:
+      - 编写套利机会测试用例
+    acceptance_criteria:
+      - 考虑交易成本
+      - 稳定获利 不伤本金
+
+  US-010:
+    priority: 高
+    as: 交易员
+    want: 币安 jucoin 跨交易所套利 三角套利
+    so_that: 做出及时的交易决策
+    implementation_steps:
+      - 获取币安 ETH/USDT实时委托数据
+      - 获取jucoin ETH/USDT实时委托数据
+      - 分析套利机会
+      - 发出交易信息
+    test_steps:
+      - 编写套利机会测试用例
+    acceptance_criteria:
+      - 考虑交易成本
+      - 稳定获利 不伤本金
+
+
+  US-011:
+    priority: 高
+    epic: 交易模块
+    as: 交易员
+    want: 根据ETH的套利策略发现交易机会
+    so_that: 发现套利机会
+    depends_on: [ ]
+    acceptance_criteria:
+      - scenario: 发现交易机会
+        given:
+          - 连接币安交易所
+          - 获得实时委托数据
+        when:
+          - 根据策略发现交易机会
+          - 策略可以支持多种扩展，策略是核心竞争力
+          - 考虑各种交易成本
+        then:
+          - 输出交易机会
+
+    test_steps:
+      - 编写套利机会测试用例

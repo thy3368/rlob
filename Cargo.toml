@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "src/app",
+    "src/lib", "src/web3",
+]
+resolver = "2"
