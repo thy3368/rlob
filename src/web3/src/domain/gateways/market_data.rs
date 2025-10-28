@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use thiserror::Error;
 
-use crate::domain::entities::{Symbol, Ticker};
+use crate::domain::entities::{OrderBook, Symbol, Ticker};
 
 /// Errors that can occur during market data operations
 #[derive(Debug, Error)]
@@ -40,6 +40,27 @@ pub trait MarketDataGateway: Send + Sync {
         symbol: Symbol,
         callback: Box<dyn Fn(Ticker) + Send + Sync>,
     ) -> Result<(), MarketDataError>;
+
+    /// Get the order book depth for a specified symbol
+    ///
+    /// # Arguments
+    /// * `symbol` - The trading pair symbol
+    /// * `depth` - Number of levels to retrieve (default: 100, max: 100)
+    ///
+    /// # Returns
+    /// Returns an OrderBook with up to `depth` levels on both bid and ask sides
+    ///
+    /// # Example
+    /// ```
+    /// let orderbook = gateway.get_orderbook(Symbol::new("BTCUSDT"), 100).await?;
+    /// println!("Best bid: {:?}", orderbook.best_bid());
+    /// println!("Best ask: {:?}", orderbook.best_ask());
+    /// ```
+    async fn get_orderbook(
+        &self,
+        symbol: Symbol,
+        depth: usize,
+    ) -> Result<OrderBook, MarketDataError>;
 
     /// Check if the gateway is currently connected
     fn is_connected(&self) -> bool;

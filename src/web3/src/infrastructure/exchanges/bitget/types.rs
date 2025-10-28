@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
-use crate::domain::{entities::{Price, Quantity, Symbol, Ticker}, gateways::MarketDataError};
+use crate::domain::{
+    entities::{OrderBook, OrderBookLevel, Price, Quantity, Symbol, Ticker},
+    gateways::MarketDataError,
+};
 
 /// Bitget WebSocket subscription message
 #[derive(Debug, Serialize)]
@@ -142,5 +145,82 @@ impl BitgetTickerData {
             Some(Quantity::new(ask_qty)),
             timestamp,
         ))
+    }
+}
+
+/// Bitget REST API order book depth response
+/// Reference: https://www.bitget.com/api-doc/spot/market/Get-Orderbook
+#[derive(Debug, Deserialize)]
+pub struct BitgetOrderBookResponse {
+    pub code: String,
+    pub msg: String,
+    pub data: BitgetOrderBookData,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct BitgetOrderBookData {
+    /// Bids: [[price, quantity], ...]
+    pub bids: Vec<(String, String)>,
+
+    /// Asks: [[price, quantity], ...]
+    pub asks: Vec<(String, String)>,
+
+    /// Timestamp
+    pub ts: String,
+}
+
+impl BitgetOrderBookResponse {
+    /// Convert Bitget response to domain OrderBook entity
+    pub fn to_orderbook(&self, symbol: Symbol) -> Result<OrderBook, MarketDataError> {
+        // Check response code
+        if self.code != "00000" {
+            return Err(MarketDataError::InvalidMessage(format!(
+                "Bitget API error: {} - {}",
+                self.code, self.msg
+            )));
+        }
+
+        let bids: Result<Vec<OrderBookLevel>, MarketDataError> = self
+            .data
+            .bids
+            .iter()
+            .map(|(price_str, qty_str)| {
+                let price = price_str
+                    .parse::<f64>()
+                    .map_err(|e| MarketDataError::InvalidMessage(format!("Invalid bid price: {}", e)))?;
+                let quantity = qty_str
+                    .parse::<f64>()
+                    .map_err(|e| MarketDataError::InvalidMessage(format!("Invalid bid quantity: {}", e)))?;
+                Ok(OrderBookLevel::new(Price::new(price), Quantity::new(quantity)))
+            })
+            .collect();
+
+        let asks: Result<Vec<OrderBookLevel>, MarketDataError> = self
+            .data
+            .asks
+            .iter()
+            .map(|(price_str, qty_str)| {
+                let price = price_str
+                    .parse::<f64>()
+                    .map_err(|e| MarketDataError::InvalidMessage(format!("Invalid ask price: {}", e)))?;
+                let quantity = qty_str
+                    .parse::<f64>()
+                    .map_err(|e| MarketDataError::InvalidMessage(format!("Invalid ask quantity: {}", e)))?;
+                Ok(OrderBookLevel::new(Price::new(price), Quantity::new(quantity)))
+            })
+            .collect();
+
+        let timestamp = self
+            .data
+            .ts
+            .parse::<u64>()
+            .unwrap_or_else(|_| {
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_millis() as u64
+            });
+
+        Ok(OrderBook::new(symbol, bids?, asks?, timestamp))
     }
 }

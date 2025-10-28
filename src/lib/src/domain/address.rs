@@ -25,31 +25,31 @@ pub trait Service {
     fn find_by_id(&self, id: &Address) -> Result<Option<Address>, Box<dyn Error>>;
 }
 
-pub struct AddressServiceImpl {
-    pub addressRepo: AddressRepoImpl,
+pub struct AddressServiceImpl<T: Repo> {
+    pub address_repo: T,
 }
 
-impl Service for AddressServiceImpl {
+impl<T: Repo> Service for AddressServiceImpl<T> {
     fn save(&self, address: &Address) -> Result<(), Box<dyn Error>> {
-        self.addressRepo.save(address)?;
-        todo!()
+        self.address_repo.save(address)?;
+        Ok(())
     }
     fn find_by_id(&self, id: &Address) -> Result<Option<Address>, Box<dyn Error>> {
-        Ok(None)
+        self.address_repo.find_by_id(id)
     }
 }
 
-pub trait Repo: Send + Sync {
+pub trait Repo: Send + Sync + Sized {
     fn save(&self, address: &Address) -> Result<(), Box<dyn Error>>;
     fn find_by_id(&self, id: &Address) -> Result<Option<Address>, Box<dyn Error>>;
 }
 
 pub struct AddressRepoImpl {}
 impl Repo for AddressRepoImpl {
-    fn save(&self, address: &Address) -> Result<(), Box<dyn Error>> {
+    fn save(&self, _address: &Address) -> Result<(), Box<dyn Error>> {
         todo!()
     }
-    fn find_by_id(&self, id: &Address) -> Result<Option<Address>, Box<dyn Error>> {
+    fn find_by_id(&self, _id: &Address) -> Result<Option<Address>, Box<dyn Error>> {
         Ok(None)
     }
 }

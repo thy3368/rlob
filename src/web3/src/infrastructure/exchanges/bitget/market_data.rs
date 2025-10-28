@@ -8,17 +8,20 @@ use tokio::time::{sleep, Duration, interval};
 use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, WebSocketStream};
 
 use crate::domain::{
-    entities::{Symbol, Ticker},
+    entities::{OrderBook, Symbol, Ticker},
     gateways::{MarketDataError, MarketDataGateway},
 };
 
-use super::types::{BitgetSubscription, BitgetTickerResponse};
+use super::types::{BitgetOrderBookResponse, BitgetSubscription, BitgetTickerResponse};
 
 /// Bitget WebSocket endpoints
 const BITGET_WS_URLS: &[&str] = &[
     "wss://ws.bitget.com/v2/ws/public",
     "wss://ws.bitget.com/spot/v1/stream",
 ];
+
+/// Bitget REST API base URL
+const BITGET_REST_API_URL: &str = "https://api.bitget.com";
 
 const MAX_RECONNECT_ATTEMPTS: u32 = 10;
 const RECONNECT_DELAY_MS: u64 = 3000;
@@ -290,5 +293,51 @@ impl MarketDataGateway for BitgetMarketDataGateway {
         self.connected.store(false, Ordering::SeqCst);
         *stream_lock = None;
         Ok(())
+    }
+
+    async fn get_orderbook(
+        &self,
+        symbol: Symbol,
+        depth: usize,
+    ) -> Result<OrderBook, MarketDataError> {
+        // Bitget supports depths: 5, 15, 50, 100
+        // Map requested depth to closest valid value
+        let valid_depth = match depth {
+            0..=5 => 5,
+            6..=15 => 15,
+            16..=50 => 50,
+            _ => 100,
+        };
+
+        // Construct REST API URL
+        // Reference: https://www.bitget.com/api-doc/spot/market/Get-Orderbook
+        let url = format!(
+            "{}/api/v2/spot/market/orderbook?symbol={}&type=step0&limit={}",
+            BITGET_REST_API_URL,
+            symbol.as_str(),
+            valid_depth
+        );
+
+        // Make HTTP request
+        let response = reqwest::get(&url)
+            .await
+            .map_err(|e| MarketDataError::NetworkError(format!("HTTP request failed: {}", e)))?;
+
+        // Check if request was successful
+        if !response.status().is_success() {
+            return Err(MarketDataError::NetworkError(format!(
+                "API returned error status: {}",
+                response.status()
+            )));
+        }
+
+        // Parse response
+        let orderbook_response: BitgetOrderBookResponse = response
+            .json()
+            .await
+            .map_err(|e| MarketDataError::InvalidMessage(format!("Failed to parse response: {}", e)))?;
+
+        // Convert to domain entity
+        orderbook_response.to_orderbook(symbol)
     }
 }

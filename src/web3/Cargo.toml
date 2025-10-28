@@ -15,12 +15,22 @@ path = "src/main.rs"
 name = "dual_exchange"
 path = "src/bin/dual_exchange.rs"
 
+[[bin]]
+name = "test_orderbook"
+path = "src/bin/test_orderbook.rs"
+
+[[bin]]
+name = "test_bitget_orderbook"
+path = "src/bin/test_bitget_orderbook.rs"
+
 [dependencies]
 # Async runtime
 tokio = { version = "1", features = ["full"] }
 # WebSocket client
 tokio-tungstenite = { version = "0.24", features = ["native-tls"] }
 futures-util = "0.3"
+# HTTP client
+reqwest = { version = "0.12", features = ["json"] }
 # Serialization
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

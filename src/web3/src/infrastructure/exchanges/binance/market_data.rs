@@ -8,11 +8,11 @@ use tokio::time::{sleep, Duration};
 use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, WebSocketStream};
 
 use crate::domain::{
-    entities::{Symbol, Ticker},
+    entities::{OrderBook, Symbol, Ticker},
     gateways::{MarketDataError, MarketDataGateway},
 };
 
-use super::types::BinanceTickerResponse;
+use super::types::{BinanceOrderBookResponse, BinanceTickerResponse};
 
 /// Binance WebSocket endpoints (with fallback support)
 /// Using single stream format without combined streams wrapper
@@ -22,6 +22,9 @@ const BINANCE_WS_URLS: &[&str] = &[
     "wss://stream.binance.us:9443/ws",
     "wss://fstream.binance.com",  // Futures stream
 ];
+
+/// Binance REST API base URL
+const BINANCE_REST_API_URL: &str = "https://api.binance.com";
 
 const MAX_RECONNECT_ATTEMPTS: u32 = 10;
 const RECONNECT_DELAY_MS: u64 = 3000;
@@ -250,5 +253,54 @@ impl MarketDataGateway for BinanceMarketDataGateway {
         self.connected.store(false, Ordering::SeqCst);
         *stream_lock = None;
         Ok(())
+    }
+
+    async fn get_orderbook(
+        &self,
+        symbol: Symbol,
+        depth: usize,
+    ) -> Result<OrderBook, MarketDataError> {
+        // Validate depth parameter (Binance supports: 5, 10, 20, 50, 100, 500, 1000, 5000)
+        // For our use case, we'll use the closest valid depth
+        let valid_depth = match depth {
+            0..=5 => 5,
+            6..=10 => 10,
+            11..=20 => 20,
+            21..=50 => 50,
+            51..=100 => 100,
+            101..=500 => 500,
+            501..=1000 => 1000,
+            _ => 5000,
+        };
+
+        // Construct REST API URL
+        let url = format!(
+            "{}/api/v3/depth?symbol={}&limit={}",
+            BINANCE_REST_API_URL,
+            symbol.as_str(),
+            valid_depth
+        );
+
+        // Make HTTP request
+        let response = reqwest::get(&url)
+            .await
+            .map_err(|e| MarketDataError::NetworkError(format!("HTTP request failed: {}", e)))?;
+
+        // Check if request was successful
+        if !response.status().is_success() {
+            return Err(MarketDataError::NetworkError(format!(
+                "API returned error status: {}",
+                response.status()
+            )));
+        }
+
+        // Parse response
+        let orderbook_response: BinanceOrderBookResponse = response
+            .json()
+            .await
+            .map_err(|e| MarketDataError::InvalidMessage(format!("Failed to parse response: {}", e)))?;
+
+        // Convert to domain entity
+        orderbook_response.to_orderbook(symbol)
     }
 }
