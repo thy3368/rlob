@@ -22,6 +22,16 @@ stories:
       - 连接断开时能够自动重连
       - 尽量复用之前的领域模型
 
+  US-001-2:
+    path: /Users/hongyaotang/src/rlob/src/lib
+    priority: 高
+    as: 交易员
+    want: 实现以太坊MPT 不依赖三方
+    so_that: 证明 验证 数据
+    acceptance_criteria:
+      - 不依赖三方
+
+
   US-002:
     priority: 高
     as: 交易员
