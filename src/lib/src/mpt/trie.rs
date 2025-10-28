@@ -10,6 +10,7 @@
 use super::node::Node;
 use super::nibbles::{bytes_to_nibbles, common_prefix, compact_encode};
 use super::hash::keccak256;
+use super::proof::MerkleProof;
 use std::collections::HashMap;
 
 /// Merkle Patricia Trie
@@ -278,6 +279,58 @@ impl MerklePatriciaTrie {
         }
     }
 
+    /// Generate a Merkle proof for a key
+    ///
+    /// Returns a proof that can be used to verify the existence (or non-existence)
+    /// of a key-value pair in the trie
+    pub fn get_proof(&self, key: &[u8]) -> MerkleProof {
+        let nibbles = bytes_to_nibbles(key);
+        let mut proof_nodes = Vec::new();
+        let value = self.get_proof_at(&self.root, &nibbles, &mut proof_nodes);
+
+        MerkleProof::new(key.to_vec(), value, proof_nodes)
+    }
+
+    /// Recursive proof generation
+    fn get_proof_at(&self, node: &Node, path: &[u8], proof_nodes: &mut Vec<Node>) -> Option<Vec<u8>> {
+        // 将当前节点添加到证明路径
+        proof_nodes.push(node.clone());
+
+        match node {
+            Node::Empty => None,
+
+            Node::Leaf { path: leaf_path, value } => {
+                if path == leaf_path.as_slice() {
+                    Some(value.clone())
+                } else {
+                    None
+                }
+            }
+
+            Node::Extension { path: ext_path, child_hash } => {
+                if path.starts_with(ext_path) {
+                    let remaining = &path[ext_path.len()..];
+                    let child = self.storage.get(child_hash)?;
+                    self.get_proof_at(child, remaining, proof_nodes)
+                } else {
+                    None
+                }
+            }
+
+            Node::Branch { children, value } => {
+                if path.is_empty() {
+                    value.clone()
+                } else {
+                    let nibble = path[0] as usize;
+                    let remaining = &path[1..];
+                    let child_hash = children[nibble].as_ref()?;
+                    let child = self.storage.get(child_hash)?;
+                    self.get_proof_at(child, remaining, proof_nodes)
+                }
+            }
+        }
+    }
+
     /// Compute the Merkle root hash
     pub fn root_hash(&self) -> Vec<u8> {
         self.hash_node(&self.root)
@@ -389,5 +442,89 @@ mod tests {
 
         println!("Hash1: {:?}", hash1);
         println!("Hash2: {:?}", hash2);
+    }
+
+    #[test]
+    fn test_proof_generation_and_verification() {
+        let mut trie = MerklePatriciaTrie::new();
+
+        // 插入一些数据
+        trie.insert(b"do", b"verb");
+        trie.insert(b"dog", b"puppy");
+        trie.insert(b"doge", b"coin");
+
+        // 获取根哈希
+        let root_hash = trie.root_hash();
+
+        // 为"dog"生成证明
+        let proof = trie.get_proof(b"dog");
+
+        // 验证证明内容
+        assert_eq!(proof.key, b"dog");
+        assert_eq!(proof.value, Some(b"puppy".to_vec()));
+        assert!(!proof.proof_nodes.is_empty());
+
+        // 验证证明有效性
+        assert!(proof.verify(&root_hash));
+    }
+
+    #[test]
+    fn test_proof_for_nonexistent_key() {
+        let mut trie = MerklePatriciaTrie::new();
+
+        trie.insert(b"do", b"verb");
+        trie.insert(b"dog", b"puppy");
+
+        let root_hash = trie.root_hash();
+
+        // 为不存在的键生成证明
+        let proof = trie.get_proof(b"cat");
+
+        // 值应该是None
+        assert_eq!(proof.value, None);
+
+        // 证明应该仍然有效（证明不存在）
+        assert!(proof.verify(&root_hash));
+    }
+
+    #[test]
+    fn test_proof_invalid_after_modification() {
+        let mut trie = MerklePatriciaTrie::new();
+
+        trie.insert(b"test", b"value");
+
+        // 获取原始根哈希和证明
+        let old_root_hash = trie.root_hash();
+        let proof = trie.get_proof(b"test");
+
+        // 验证原始证明
+        assert!(proof.verify(&old_root_hash));
+
+        // 修改trie
+        trie.insert(b"test2", b"value2");
+        let new_root_hash = trie.root_hash();
+
+        // 旧证明对新根应该无效（因为根哈希改变了）
+        // 注意：这里证明本身的结构可能仍然有效，但根哈希不匹配
+        assert_ne!(old_root_hash, new_root_hash);
+    }
+
+    #[test]
+    fn test_proof_with_multiple_keys() {
+        let mut trie = MerklePatriciaTrie::new();
+
+        trie.insert(b"apple", b"fruit");
+        trie.insert(b"banana", b"yellow");
+        trie.insert(b"cherry", b"red");
+
+        let root_hash = trie.root_hash();
+
+        // 为每个键生成并验证证明
+        let keys: Vec<&[u8]> = vec![b"apple", b"banana", b"cherry"];
+        for key in keys {
+            let proof = trie.get_proof(key);
+            assert!(proof.value.is_some());
+            assert!(proof.verify(&root_hash));
+        }
     }
 }

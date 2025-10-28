@@ -10,6 +10,8 @@ pub mod node;
 pub mod trie;
 pub mod nibbles;
 pub mod hash;
+pub mod proof;
 
 pub use trie::MerklePatriciaTrie;
 pub use node::{Node, NodeType};
+pub use proof::MerkleProof;
