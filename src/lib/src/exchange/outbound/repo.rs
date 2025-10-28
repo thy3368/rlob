@@ -1,4 +1,4 @@
-use crate::domain::address::{Address, Repo};
+use crate::exchange::domain::address::{Address, Repo};
 use std::error::Error;
 
 pub struct AddressDbRepo {}
