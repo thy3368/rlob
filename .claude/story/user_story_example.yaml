@@ -232,3 +232,12 @@ stories:
     so_that: 消息收发
     acceptance_criteria:
       - 断线重链
+
+  US-012-01:
+    path: /Users/hongyaotang/src/rlob/src/lib
+    priority: 高
+    as: 交易员
+    want: tcp单播收发
+    so_that: 消息收发
+    acceptance_criteria:
+      - 断线重链

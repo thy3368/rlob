@@ -2,9 +2,9 @@
 ///
 /// 在同一进程中运行发送端和接收端，验证端到端功能
 
-use lib::domain::multicast::*;
-use lib::outbound::udp_publisher::UdpMulticastPublisher;
-use lib::outbound::udp_subscriber::UdpMulticastSubscriber;
+use lib::multicase::domain::multicast::*;
+use lib::multicase::outbound::udp_publisher::UdpMulticastPublisher;
+use lib::multicase::outbound::udp_subscriber::UdpMulticastSubscriber;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Duration;

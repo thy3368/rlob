@@ -2,8 +2,8 @@
 ///
 /// 演示如何使用UDP组播接收市场数据
 
-use lib::domain::multicast::*;
-use lib::outbound::udp_subscriber::UdpMulticastSubscriber;
+use lib::multicase::domain::multicast::*;
+use lib::multicase::outbound::udp_subscriber::UdpMulticastSubscriber;
 use std::time::Duration;
 use tokio::time;
 
