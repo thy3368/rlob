@@ -16,11 +16,11 @@ fn main() -> io::Result<()> {
 
     // 绑定地址并创建监听器
     let addr = "127.0.0.1:8080".parse().unwrap();
-    let mut server = TcpListener::bind(addr)?;
+    let mut listen_socket = TcpListener::bind(addr)?;
 
     // 将服务器监听器注册到 poll，关注可读事件（新连接）
     poll.registry()
-        .register(&mut server, SERVER, Interest::READABLE)?;
+        .register(&mut listen_socket, SERVER, Interest::READABLE)?;
 
     // 用于保存已建立的连接
     let mut connections = HashMap::new();
@@ -36,7 +36,7 @@ fn main() -> io::Result<()> {
                 SERVER => {
                     // 接受新连接
                     loop {
-                        match server.accept() {
+                        match listen_socket.accept() {
                             Ok((mut stream, address)) => {
                                 println!("新客户端: {}", address);
                                 let token = unique_token;
