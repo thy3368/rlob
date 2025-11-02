@@ -13,3 +13,6 @@ rayon = "1.11.0"
 nix = { version = "0.30.1", features = ["event"] }
 mio = "1.1.0"
 dashmap = "5.5"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+io-uring = "0.7.11"
