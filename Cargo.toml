@@ -1,6 +1,6 @@
 [workspace]
 members = [
     "src/app",
-    "src/lib", "src/web3",
+    "src/lib", "src/macro_lib", "src/web3",
 ]
 resolver = "2"
