@@ -18,6 +18,7 @@ spring-sqlx = "0.4.1"
 spring-web = "0.4.12"
 spring = "0.4.6"
 anyhow = "1.0.100"
+bumpalo = "3.19.0"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 io-uring = "0.7.11"
