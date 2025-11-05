@@ -32,6 +32,14 @@ struct PoolRecord<T> {
     data: Option<T>, // 存储的实际数据
 }
 
+// 内存池统计信息
+#[derive(Debug)]
+pub struct PoolStats {
+    pub total_objects: usize, // 总对象数
+    pub alive_objects: usize, // 存活对象数
+    pub fragmentation: f32,   // 碎片率
+}
+
 // 主内存池结构
 pub struct Pool<T> {
     records: Vec<PoolRecord<T>>, // 存储对象的连续内存块
@@ -43,6 +51,13 @@ impl<T> Pool<T> {
         Self {
             records: Vec::new(),
             free_stack: Vec::new(),
+        }
+    }
+
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            records: Vec::with_capacity(capacity),
+            free_stack: Vec::with_capacity(capacity),
         }
     }
 
@@ -104,6 +119,14 @@ impl<T> Pool<T> {
             false
         }
     }
+
+    pub fn stats(&self) -> PoolStats {
+        PoolStats {
+            total_objects: self.records.len(),
+            alive_objects: self.records.len() - self.free_stack.len(),
+            fragmentation: self.free_stack.len() as f32 / self.records.len() as f32,
+        }
+    }
 }
 
 // 定义游戏对象
@@ -113,7 +136,7 @@ struct GameObject {
 }
 
 fn main() {
-    let mut pool = Pool::new();
+    let mut pool = Pool::with_capacity(1000); // 预分配容量
 
     // 创建对象
     let player_handle = pool.spawn(GameObject {
