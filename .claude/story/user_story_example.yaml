@@ -250,3 +250,14 @@ stories:
     so_that: 消息收发
     acceptance_criteria:
       - 断线重链
+      -
+  US-012-03:
+    path: /Users/hongyaotang/src/rlob/src/lib
+    priority: 高
+    as: 交易员
+    want: 阅读 https://gist.github.com/druska/d6ce3f2bac74db08ee9007cdf98106ef
+    so_that: 生成rust代码
+    acceptance_criteria:
+      - rust代码跑通
+
+
