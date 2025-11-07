@@ -22,6 +22,16 @@ bumpalo = "3.19.0"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 io-uring = "0.7.11"
+async-rdma = { path = "../../vendor/async-rdma" }
+ibverbs = "0.9.2"
+
+[[example]]
+name = "server"
+required-features = []
+
+[[example]]
+name = "client"
+required-features = []
 
 
 
